@@ -24,17 +24,10 @@ def get_mse(c, out):
 
     for idx in range(len(df)):
         msid = "ms" + df.loc[idx, 'msid'].replace("ms","").lstrip("0")
-        date1 = str(df.loc[idx, 'date'])
-        """Y = "20"+date1.split('/')[2]
-        M = date1.split('/')[0]
-        if len(M) <2 :
-            M = "0" + M
-        D = date1.split('/')[1]
-        if len(D) < 2:
-            D = "0" + D"""
-        print(msid)
-        print(date1)
-        try:
+        mse = df.loc[idx, "mse"]
+        #date1 = ""
+        if not str(mse).startswith("mse"):
+            date1 = str(df.loc[idx, 'date'])
             cmd = ["ms_get_patient_imaging_exams", "--patient_id", msid.split("ms")[1].lstrip("0"), "--dcm_dates"]
             proc = Popen(cmd, stdout=PIPE)
             lines = [l.decode("utf-8").split() for l in proc.stdout.readlines()[5:]]
@@ -48,14 +41,14 @@ def get_mse(c, out):
                 if str(date1) == (date2):
                     print(date1, date2, mse)
                     df.loc[idx, "mse"] = "mse"+ mse.zfill(4)
-        except:
-            pass
+        #except:
+            #pass
 
 
     
-        print(date1, msid)
-        out = "{}".format(out)
-        df.to_csv(out)  
+            print(date1, msid)
+            out = "{}".format(out)
+            df.to_csv(out)  
 
 
 if __name__ == '__main__':

@@ -5,7 +5,8 @@ import pbr
 import os
 from glob import glob
 from pbr.base import _get_output
-from subprocess import Popen, PIPE
+import subprocess
+from subprocess import Popen, PIPE, check_call
 from getpass import getpass
 import json
 from nipype.utils.filemanip import load_json
@@ -16,6 +17,20 @@ import shutil
 import nibabel as nib
 import numpy as np
 import csv
+
+password = getpass("mspacman password: ")
+check_call(["ms_dcm_echo", "-p", password])
+
+def get_station_name(mse):
+    scanner = ""
+    proc = subprocess.Popen(["ms_get_phi", "--examID", mse, "-p",password],stdout=subprocess.PIPE)
+    for line in proc.stdout:
+        line = str(line.rstrip())
+        if "StationName" in line:
+            scanner= line.split()[-1].lstrip("b'").rstrip("'")
+            print("Scanner", scanner)
+    return scanner
+
 
 
 def get_mse(msid):
@@ -53,7 +68,7 @@ def filter_files(descrip,nii_type, heuristic):
 def get_scanner_info(mse, x):
     info = ""
     try:
-        dicom = glob("/working/henry_temp/PBR/dicoms/{0}/E*/*/*.DCM".format(mse))[0]
+        dicom = glob("/working/henry_temp/PBR/dicoms/{0}/E*/*/*.DCM".format(mse))[-1]
         cmd = ["dcmdump", dicom]
         proc = Popen(cmd, stdout=PIPE)
         output = [l.decode("utf-8").split() for l in proc.stdout.readlines()[:]]
@@ -180,6 +195,7 @@ def get_sienax_path(mse):
 
 
 
+def read_siena_html():
 
 
 
@@ -187,7 +203,7 @@ def write_csv(c, out):
     msid = mse = date = " "
     df = pd.read_csv("{}".format(c))
     writer = open("{}".format(out), "w")
-    spreadsheet = csv.DictWriter(writer, fieldnames=["msid", "mse", "date","tag", "T1", "T2", "FLAIR", "Software", "Scanner", \
+    spreadsheet = csv.DictWriter(writer, fieldnames=["msid", "mse", "date","tag", "T1", "T2", "FLAIR", "Software", "Scanner", "Station" \
                                                     'Left-Thalamus-Proper',
                                                     'Left-Caudate',
                                                     'Left-Putamen',
@@ -233,7 +249,7 @@ def write_csv(c, out):
                     'Left-Thalamus-Proper': F[0], 'Left-Caudate':F[1],'Left-Putamen':F[2],'Left-Pallidum':F[3],'Left-Hippocampus':F[4],'Left-Amygdala':F[5],
                     'Left-Accumbens':F[6], 'Right-Thalamus-Proper':F[7],'Right-Caudate':F[8],'Right-Putamen':F[9], 'Right-Pallidum':F[10], 'Right-Hippocampus':F[11],
                    'Right-Amygdala':F[12],'Right-Accumbens':F[13],'Brain Stem':F[14],
-                   'sienax': SX[0],'V Scale': SX[1],'pGM': SX[2],'CSF': SX[3],'GM': SX[4],'WM': SX[5],"BV": SX[6],"Lesion": SX[7]
+                   'sienax': SX[0],'V Scale': SX[1],'pGM': SX[2],'CSF': SX[3],'GM': SX[4],'WM': SX[5],"BV": SX[6],"Lesion": SX[7], "Station":get_station_name(mse)
 
                    }
             spreadsheet.writerow(row)

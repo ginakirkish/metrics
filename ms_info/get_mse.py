@@ -10,19 +10,19 @@ from os.path import join
 import csv
 from nipype.utils.filemanip import load_json, json
 
-df = pd.read_csv("/home/sf522915/roland_mse_msid.csv")
+df = pd.read_csv("/home/sf522915/Documents/msid_missing.csv")
 
 
-writer = open("/home/sf522915/msid_mse_check.csv", "w")
+writer = open("/home/sf522915/Documents/msid_mse_check.csv", "w")
 spreadsheet = csv.DictWriter(writer, fieldnames=[ "MSID","ExamDate", "mse", "date"])
 spreadsheet.writeheader()
 
 for _, row in df.iterrows():
-    
-    msid = row["MSID"]
+    towrite = {}
+    msid = row["msid"]
     msid = msid.replace("ms","")
     msid = msid.lstrip("0")
-    date1 = row["ExamDate"]
+    #date1 = row["ExamDate"]
   
     cmd = ["ms_get_patient_imaging_exams", "--patient_id", msid, "--dcm_dates"]
     proc = Popen(cmd, stdout=PIPE)
@@ -34,10 +34,10 @@ for _, row in df.iterrows():
     for _, row in tmp.iterrows():
         mse = row["mse"]
         date2 = row["date"]
-        print(msid, mse, date1, date2)
+        print(msid, mse,  date2)
         towrite["MSID"] = msid
         towrite["mse"] = mse
-        towrite["ExamDate"] = str(date1)
+        towrite["ExamDate"] = str(date2)
         towrite["date"] = date2
         spreadsheet.writerow(towrite) 
 writer.close()

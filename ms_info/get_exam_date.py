@@ -11,18 +11,18 @@ import pandas as pd
 from getpass import getpass
 
 
-password = getpass("mspacman password: ")
-check_call(["ms_dcm_echo", "-p", password])
+#password = getpass("mspacman password: ")
+#check_call(["ms_dcm_echo", "-p", password])
 
 def get_date(msid, mse):
-    output = check_output(["ms_get_phi", "--examID", mse, "--studyDate", "-p", password])
+    output = check_output(["ms_get_phi", "--examID", mse, "--studyDate", "-p", "Rosie1313"])
     output = [output.decode('utf8')]
     for line in output:
         if "StudyDate" in line:
             date = line.split()[-1]
-            print(date)
+            print( date)
             df.loc[idx,"date"] = date
-    df.to_csv("/home/sf522915/Documents/eurotrip_withdate.csv")
+    df.to_csv("/home/sf522915/Documents/PMD_date.csv")
 
 
 
@@ -38,5 +38,5 @@ if __name__ == '__main__':
     for idx in range (len(df)):
         mse = df.loc[idx, "mse"]
         msid = df.loc[idx, "msid"]
-        print(msid, mse)
+        #print(msid, mse)
         get_date(msid, mse)
